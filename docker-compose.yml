@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: finvase-postgres-nextJS
+    environment:
+      POSTGRES_DB: finvase
+      POSTGRES_USER: finvase_user
+      POSTGRES_PASSWORD: finvase_password
+    ports:
+      - "7432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
