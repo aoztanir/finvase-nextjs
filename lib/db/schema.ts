@@ -54,6 +54,29 @@ export const deal = pgTable('deal', {
   updated_at: timestamp('updated_at').defaultNow().notNull(),
 });
 
+export const dealEventStatusEnum = pgEnum('deal_event_status', ['completed', 'in-progress', 'pending', 'action-required']);
+
+export const dealEvent = pgTable('deal_event', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  deal_id: uuid('deal_id').notNull().references(() => deal.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  description: text('description'),
+  status: dealEventStatusEnum('status').notNull().default('pending'),
+  created_at: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const document = pgTable('document', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  deal_id: uuid('deal_id').notNull().references(() => deal.id, { onDelete: 'cascade' }),
+  parent_id: uuid('parent_id').references(() => document.id),
+  file_path: text('file_path'),
+  file_type: text('file_type'),
+  uploaded_by: uuid('uploaded_by').notNull().references(() => user.id),
+  created_at: timestamp('created_at').defaultNow().notNull(),
+  updated_at: timestamp('updated_at').defaultNow().notNull(),
+});
+
 export const cim = pgTable('cim', {
   id: uuid('id').defaultRandom().primaryKey(),
   deal_id: uuid('deal_id').notNull().references(() => deal.id),

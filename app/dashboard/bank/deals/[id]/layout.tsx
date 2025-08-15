@@ -51,8 +51,8 @@ export default function DealLayout({
       <DealSidebar dealId={dealId} />
       <SidebarInset>
         <DashboardHeader onToggleSidebar={toggleSidebar} />
-        <main className="flex-1 overflow-auto">
-          <div className="space-y-4 p-8 pt-6">
+        <main className="flex-1 overflow-auto p-4">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
