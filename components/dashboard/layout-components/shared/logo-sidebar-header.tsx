@@ -1,7 +1,7 @@
 import { SidebarHeader } from "@/components/shadcn/sidebar";
 import { Logo } from "@/components/ui/logo";
 
-export default function LogoSidebarHeader() {
+export function LogoSidebarHeader() {
   return (
     <SidebarHeader className="border-b group-data-[state=collapsed]:py-3 group-data-[state=collapsed]:px-0 p-4">
       <div className="flex items-center gap-2 justify-between group-data-[state=collapsed]:justify-center">
@@ -14,3 +14,5 @@ export default function LogoSidebarHeader() {
     </SidebarHeader>
   );
 }
+
+export default LogoSidebarHeader;
