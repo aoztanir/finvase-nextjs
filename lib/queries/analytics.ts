@@ -1,6 +1,6 @@
 import { db } from "@/lib/db/client";
 import { user, deal, investor, cim } from "@/lib/db/schema";
-import { eq, count, sum, sql } from "drizzle-orm";
+import { eq, count, sum, sql, gte, and } from "drizzle-orm";
 
 export async function get_bank_analytics(bank_id: string) {
   // Get total counts
@@ -43,13 +43,19 @@ export async function get_bank_analytics(bank_id: string) {
     .select({ count: count() })
     .from(deal)
     .where(
-      sql`${deal.bank_id} = ${bank_id} AND ${deal.created_at} >= ${thirtyDaysAgo}`
+      and(
+        eq(deal.bank_id, bank_id),
+        gte(deal.created_at, thirtyDaysAgo)
+      )
     );
 
   // Get total deal value (if numeric)
   const totalDealValue = await db
     .select({
-      total: sql<number>`COALESCE(SUM(CAST(${deal.deal_value} AS NUMERIC)), 0)`,
+      total: sql<number>`COALESCE(SUM(CASE 
+        WHEN ${deal.deal_value} IS NULL OR ${deal.deal_value} = '' THEN 0 
+        ELSE CAST(REGEXP_REPLACE(${deal.deal_value}, '[^0-9.]', '', 'g') AS NUMERIC) 
+      END), 0)`,
     })
     .from(deal)
     .where(eq(deal.bank_id, bank_id));
@@ -59,7 +65,10 @@ export async function get_bank_analytics(bank_id: string) {
     .select({
       deal_id: investor.deal_id,
       investor_count: count(),
-      total_investment: sql<number>`COALESCE(SUM(CAST(${investor.investment_amount} AS NUMERIC)), 0)`,
+      total_investment: sql<number>`COALESCE(SUM(CASE 
+        WHEN ${investor.investment_amount} IS NULL OR ${investor.investment_amount} = '' THEN 0 
+        ELSE CAST(REGEXP_REPLACE(${investor.investment_amount}, '[^0-9.]', '', 'g') AS NUMERIC) 
+      END), 0)`,
     })
     .from(investor)
     .leftJoin(deal, eq(investor.deal_id, deal.id))

@@ -4,29 +4,82 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/shadcn/badge"
 import { Progress } from "@/components/shadcn/progress"
 import { Separator } from "@/components/shadcn/separator"
+import { useQuery } from "@tanstack/react-query"
+import { use } from "react"
 
-export default function DealOverviewPage() {
+interface Deal {
+  id: string
+  title: string
+  description?: string
+  client_name?: string
+  client_email?: string
+  deal_value?: string
+  status: string
+  created_at: string
+  updated_at?: string
+}
+
+export default function DealOverviewPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+  
+  const { data: deal, isLoading, error } = useQuery<Deal>({
+    queryKey: ['deal', id],
+    queryFn: async () => {
+      const response = await fetch(`/api/deals/${id}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch deal')
+      }
+      return response.json()
+    }
+  })
+
+  const { data: investors = [] } = useQuery({
+    queryKey: ['deal-investors', id],
+    queryFn: async () => {
+      const response = await fetch(`/api/deals/${id}/investors`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch investors')
+      }
+      return response.json()
+    }
+  })
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Loading deal overview...</div>
+      </div>
+    )
+  }
+
+  if (error || !deal) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg text-red-600">Error loading deal overview</div>
+      </div>
+    )
+  }
   const dealDetails = {
-    description: "Acquisition of a leading technology company specializing in AI-powered analytics solutions. The deal includes intellectual property, customer base, and key personnel retention.",
+    description: deal.description || "No description available for this deal.",
     timeline: [
-      { phase: "Initial Contact", status: "completed", date: "2024-01-15" },
-      { phase: "Due Diligence", status: "completed", date: "2024-01-22" },
-      { phase: "Valuation", status: "in-progress", date: "2024-01-28" },
-      { phase: "Term Sheet", status: "pending", date: "2024-02-05" },
-      { phase: "Final Agreement", status: "pending", date: "2024-02-15" },
-      { phase: "Closing", status: "pending", date: "2024-02-22" },
+      { phase: "Initial Contact", status: "completed", date: deal.created_at },
+      { phase: "Due Diligence", status: deal.status === "draft" ? "pending" : "completed", date: deal.created_at },
+      { phase: "Valuation", status: deal.status === "active" ? "in-progress" : deal.status === "draft" ? "pending" : "completed", date: deal.updated_at || deal.created_at },
+      { phase: "Term Sheet", status: deal.status === "pending" ? "in-progress" : deal.status === "closed" ? "completed" : "pending", date: deal.updated_at || deal.created_at },
+      { phase: "Final Agreement", status: deal.status === "closed" ? "completed" : "pending", date: deal.updated_at || deal.created_at },
+      { phase: "Closing", status: deal.status === "closed" ? "completed" : "pending", date: deal.updated_at || deal.created_at },
     ],
     keyMetrics: [
-      { label: "Revenue", value: "$12.5M", change: "+25%" },
-      { label: "EBITDA", value: "$3.2M", change: "+18%" },
-      { label: "Employees", value: "145", change: "+12%" },
-      { label: "Market Share", value: "8.5%", change: "+2%" },
+      { label: "Deal Value", value: deal.deal_value || "TBD", change: "N/A" },
+      { label: "Status", value: deal.status.charAt(0).toUpperCase() + deal.status.slice(1), change: "Current" },
+      { label: "Client", value: deal.client_name || "Unassigned", change: "Primary" },
+      { label: "Investors", value: investors.length.toString(), change: "Active" },
     ],
-    investors: [
-      { name: "Venture Capital Fund A", amount: "$2.1M", percentage: "40%" },
-      { name: "Angel Investor Group", amount: "$1.6M", percentage: "31%" },
-      { name: "Strategic Partner", value: "$1.5M", percentage: "29%" },
-    ]
+    investors: investors.map((investor: any) => ({
+      name: investor.investor_name || "Unknown Investor",
+      amount: investor.investment_amount || "TBD",
+      percentage: "TBD"
+    }))
   }
 
   const getStatusColor = (status: string) => {

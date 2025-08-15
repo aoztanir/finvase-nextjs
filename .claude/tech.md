@@ -23,6 +23,7 @@
 - **State/Data Fetching:** [TanStack Query](https://tanstack.com/query/latest) for server data fetching & caching.
 - **Animations & UX:** Keep UI modern, professional, and smooth.
 - **Preventing Layout Nesting** use the parenthesis `()` to prevent layout nesting in the frontend through the filebased routing in Next.js.
+- **Use light color schemes** Look at $lib/constants/COLORS.ts for information on how to use it
 
 ---
 

@@ -3,21 +3,95 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/shadcn/card"
 import { Button } from "@/components/shadcn/button"
 import { Badge } from "@/components/shadcn/badge"
+import { CreateDealModal } from "@/components/dashboard/create-deal-modal"
+import { useQuery } from "@tanstack/react-query"
+import { useState } from "react"
 import Link from "next/link"
 
-export default function BankDashboard() {
-  const stats = [
-    { title: "Active Deals", value: "12", change: "+2 this month" },
-    { title: "Total Clients", value: "48", change: "+5 this month" },
-    { title: "Deal Value", value: "$24.5M", change: "+15% this quarter" },
-    { title: "Pending Reviews", value: "3", change: "2 urgent" },
-  ]
+interface Deal {
+  id: string
+  title: string
+  client_name?: string
+  deal_value?: string
+  status: string
+  created_at: string
+}
 
-  const recentDeals = [
-    { id: "1", title: "Tech Acquisition", client: "TechCorp Inc", value: "$5.2M", status: "active" },
-    { id: "2", title: "Real Estate Fund", client: "Property Partners", value: "$12.8M", status: "pending" },
-    { id: "3", title: "Healthcare Merger", client: "MedGroup LLC", value: "$8.4M", status: "review" },
-    { id: "4", title: "Energy Investment", client: "GreenPower Co", value: "$3.1M", status: "draft" },
+interface Analytics {
+  totals: {
+    clients: number
+    investors: number
+    deals: number
+    documents: number
+  }
+  dealsByStatus: Record<string, number>
+  recentActivity: {
+    newDealsLast30Days: number
+  }
+  financials: {
+    totalDealValue: number
+  }
+}
+
+export default function BankDashboard() {
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  
+  const { data: analytics, isLoading: analyticsLoading } = useQuery<Analytics>({
+    queryKey: ['analytics'],
+    queryFn: async () => {
+      const response = await fetch('/api/bank/analytics')
+      if (!response.ok) {
+        throw new Error('Failed to fetch analytics')
+      }
+      return response.json()
+    }
+  })
+
+  const { data: deals = [], isLoading: dealsLoading } = useQuery<Deal[]>({
+    queryKey: ['deals'],
+    queryFn: async () => {
+      const response = await fetch('/api/deals')
+      if (!response.ok) {
+        throw new Error('Failed to fetch deals')
+      }
+      return response.json()
+    }
+  })
+
+  const recentDeals = deals.slice(0, 4)
+  const activeDeals = deals.filter(deal => deal.status === 'active').length
+  const pendingReviews = deals.filter(deal => deal.status === 'review').length
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 1,
+    }).format(value)
+  }
+
+  const stats = [
+    { 
+      title: "Active Deals", 
+      value: activeDeals.toString(), 
+      change: analytics ? `${analytics.recentActivity.newDealsLast30Days} new this month` : "Loading..." 
+    },
+    { 
+      title: "Total Clients", 
+      value: analytics?.totals.clients.toString() || "0", 
+      change: "Managed accounts" 
+    },
+    { 
+      title: "Deal Value", 
+      value: analytics ? formatCurrency(analytics.financials.totalDealValue) : "$0", 
+      change: "Total portfolio value" 
+    },
+    { 
+      title: "Pending Reviews", 
+      value: pendingReviews.toString(), 
+      change: "Requiring attention" 
+    },
   ]
 
   const getStatusColor = (status: string) => {
@@ -30,13 +104,23 @@ export default function BankDashboard() {
     }
   }
 
+  if (analyticsLoading || dealsLoading) {
+    return (
+      <div className="flex-1 space-y-4">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Loading dashboard...</div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex-1 space-y-4 p-6">
+    <div className="flex-1 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
         <div className="flex items-center space-x-2">
-          <Button asChild>
-            <Link href="/dashboard/bank/deals/new">Create New Deal</Link>
+          <Button onClick={() => setIsCreateModalOpen(true)}>
+            Create New Deal
           </Button>
         </div>
       </div>
@@ -63,22 +147,26 @@ export default function BankDashboard() {
           </CardHeader>
           <CardContent className="pl-2">
             <div className="space-y-4">
-              {recentDeals.map((deal) => (
+              {recentDeals.length > 0 ? recentDeals.map((deal) => (
                 <div key={deal.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
                   <div className="space-y-1">
                     <Link href={`/dashboard/bank/deals/${deal.id}/overview`} className="font-medium hover:underline">
                       {deal.title}
                     </Link>
-                    <p className="text-sm text-muted-foreground">{deal.client}</p>
+                    <p className="text-sm text-muted-foreground">{deal.client_name || "No client assigned"}</p>
                   </div>
                   <div className="text-right space-y-1">
-                    <div className="font-medium">{deal.value}</div>
+                    <div className="font-medium">{deal.deal_value || "TBD"}</div>
                     <Badge className={getStatusColor(deal.status)} variant="secondary">
                       {deal.status}
                     </Badge>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  No deals yet. <button onClick={() => setIsCreateModalOpen(true)} className="text-primary hover:underline">Create your first deal</button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -127,6 +215,11 @@ export default function BankDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <CreateDealModal 
+        open={isCreateModalOpen} 
+        onOpenChange={setIsCreateModalOpen} 
+      />
     </div>
   )
 }

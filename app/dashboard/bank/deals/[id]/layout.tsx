@@ -2,7 +2,7 @@
 
 import { useParams, usePathname } from "next/navigation";
 import { SidebarProvider, SidebarInset } from "@/components/shadcn/sidebar";
-import { DealSidebar } from "@/components/dashboard/deal-sidebar";
+import { DealSidebar } from "@/components/dashboard/layout-components/bank/deal-sidebar";
 import { DashboardHeader } from "@/components/dashboard/layout-components/bank/header";
 import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";

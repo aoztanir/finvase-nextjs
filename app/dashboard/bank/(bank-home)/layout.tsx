@@ -1,27 +1,25 @@
-'use client'
+"use client";
 
-import { SidebarProvider, SidebarInset } from "@/components/shadcn/sidebar"
-import { AppSidebar } from "@/components/dashboard/app-sidebar"
-import { DashboardHeader } from "@/components/dashboard/layout-components/bank/header"
+import { SidebarProvider, SidebarInset } from "@/components/shadcn/sidebar";
+import { HomeSidebar } from "@/components/dashboard/layout-components/bank/home-sidebar";
+import { DashboardHeader } from "@/components/dashboard/layout-components/bank/header";
 
 export default function BankHomeLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   const toggleSidebar = () => {
     // This function is kept for potential future use
-  }
+  };
 
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <HomeSidebar />
       <SidebarInset>
         <DashboardHeader onToggleSidebar={toggleSidebar} />
-        <main className="flex-1 overflow-auto p-4">
-          {children}
-        </main>
+        <main className="flex-1 overflow-auto p-4">{children}</main>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

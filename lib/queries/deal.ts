@@ -1,6 +1,6 @@
 import { db } from "@/lib/db/client";
 import { deal, user, cim, investor } from "@/lib/db/schema";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, and } from "drizzle-orm";
 
 export async function get_all_deals_for_bank(bank_id: string) {
   return await db
@@ -35,7 +35,7 @@ export async function get_deal_by_id(deal_id: string, bank_id: string) {
     })
     .from(deal)
     .leftJoin(user, eq(deal.client_id, user.id))
-    .where(eq(deal.id, deal_id) && eq(deal.bank_id, bank_id));
+    .where(and(eq(deal.id, deal_id), eq(deal.bank_id, bank_id)));
   
   return result[0] || null;
 }
@@ -70,4 +70,73 @@ export async function get_deal_investors(deal_id: string) {
     .leftJoin(user, eq(investor.user_id, user.id))
     .where(eq(investor.deal_id, deal_id))
     .orderBy(desc(investor.created_at));
+}
+
+export async function create_deal(data: {
+  title: string;
+  description?: string;
+  client_id?: string | null;
+  deal_value?: string;
+  status: string;
+  bank_id: string;
+}) {
+  const result = await db
+    .insert(deal)
+    .values({
+      title: data.title,
+      description: data.description,
+      client_id: data.client_id,
+      deal_value: data.deal_value,
+      status: data.status,
+      bank_id: data.bank_id,
+    })
+    .returning({
+      id: deal.id,
+      title: deal.title,
+      description: deal.description,
+      deal_value: deal.deal_value,
+      status: deal.status,
+      created_at: deal.created_at,
+    });
+
+  return result[0];
+}
+
+export async function update_deal(
+  deal_id: string,
+  data: {
+    title?: string;
+    description?: string;
+    client_id?: string;
+    deal_value?: string;
+    status?: string;
+  },
+  bank_id: string
+) {
+  const result = await db
+    .update(deal)
+    .set({
+      ...data,
+      updated_at: new Date(),
+    })
+    .where(and(eq(deal.id, deal_id), eq(deal.bank_id, bank_id)))
+    .returning({
+      id: deal.id,
+      title: deal.title,
+      description: deal.description,
+      deal_value: deal.deal_value,
+      status: deal.status,
+      updated_at: deal.updated_at,
+    });
+
+  return result[0] || null;
+}
+
+export async function delete_deal(deal_id: string, bank_id: string) {
+  const result = await db
+    .delete(deal)
+    .where(and(eq(deal.id, deal_id), eq(deal.bank_id, bank_id)))
+    .returning({ id: deal.id });
+
+  return result.length > 0;
 }

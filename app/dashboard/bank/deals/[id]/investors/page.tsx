@@ -1,75 +1,70 @@
 'use client'
 
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/shadcn/card"
 import { Button } from "@/components/shadcn/button"
 import { Badge } from "@/components/shadcn/badge"
 import { Input } from "@/components/shadcn/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/shadcn/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/shadcn/avatar"
+import { useQuery } from "@tanstack/react-query"
+import { use } from "react"
 
-export default function DealInvestorsPage() {
-  const investors = [
-    {
-      id: "1",
-      name: "Venture Capital Fund A",
-      contact: "Sarah Johnson",
-      email: "sarah@vcfunda.com",
-      phone: "+1 (555) 123-4567",
-      investment: "$2.1M",
-      percentage: "40%",
-      status: "committed",
-      joinedDate: "2024-01-15",
-      type: "VC Fund"
-    },
-    {
-      id: "2",
-      name: "Angel Investor Group",
-      contact: "Michael Chen",
-      email: "m.chen@angelgroup.com",
-      phone: "+1 (555) 234-5678",
-      investment: "$1.6M",
-      percentage: "31%",
-      status: "committed",
-      joinedDate: "2024-01-12",
-      type: "Angel Group"
-    },
-    {
-      id: "3",
-      name: "Strategic Partner Corp",
-      contact: "Emily Rodriguez",
-      email: "e.rodriguez@strategic.com",
-      phone: "+1 (555) 345-6789",
-      investment: "$1.5M",
-      percentage: "29%",
-      status: "negotiating",
-      joinedDate: "2024-01-10",
-      type: "Strategic"
-    },
-    {
-      id: "4",
-      name: "Family Office Partners",
-      contact: "David Kim",
-      email: "d.kim@familyoffice.com",
-      phone: "+1 (555) 456-7890",
-      investment: "$800K",
-      percentage: "15%",
-      status: "interested",
-      joinedDate: "2024-01-08",
-      type: "Family Office"
-    },
-    {
-      id: "5",
-      name: "Tech Innovation Fund",
-      contact: "Lisa Wang",
-      email: "l.wang@techinnovation.com",
-      phone: "+1 (555) 567-8901",
-      investment: "$500K",
-      percentage: "10%",
-      status: "declined",
-      joinedDate: "2024-01-05",
-      type: "VC Fund"
+export default function DealInvestorsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  
+  const { data: investors = [], isLoading, error } = useQuery({
+    queryKey: ['deal-investors', id],
+    queryFn: async () => {
+      const response = await fetch(`/api/deals/${id}/investors`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch investors')
+      }
+      return response.json()
     }
-  ]
+  })
+
+  const investorList = investors.length > 0 ? investors.map((investor: any) => ({
+    id: investor.id,
+    name: investor.investor_name || "Unknown Investor",
+    contact: investor.investor_email?.split('@')[0] || "N/A",
+    email: investor.investor_email || "N/A",
+    phone: "Contact for details",
+    investment: investor.investment_amount || "TBD",
+    percentage: "TBD",
+    status: investor.status || "interested",
+    joinedDate: new Date(investor.created_at).toLocaleDateString() || "N/A",
+    type: "Investor"
+  })) : []
+
+  const filteredInvestors = investorList.filter((investor: any) => {
+    const matchesSearch = investor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         investor.email.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesStatus = statusFilter === "all" || investor.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Loading investors...</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-red-600">Error loading investors</div>
+        </div>
+      </div>
+    )
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -109,6 +104,8 @@ export default function DealInvestorsPage() {
         <Input
           placeholder="Search investors..."
           className="max-w-sm"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
         <Select>
           <SelectTrigger className="w-[180px]">
@@ -122,7 +119,7 @@ export default function DealInvestorsPage() {
             <SelectItem value="family-office">Family Office</SelectItem>
           </SelectContent>
         </Select>
-        <Select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
@@ -137,7 +134,7 @@ export default function DealInvestorsPage() {
       </div>
 
       <div className="grid gap-4">
-        {investors.map((investor) => (
+        {filteredInvestors.length > 0 ? filteredInvestors.map((investor) => (
           <Card key={investor.id} className="hover:bg-muted/50 transition-colors">
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
@@ -190,7 +187,11 @@ export default function DealInvestorsPage() {
               </div>
             </CardContent>
           </Card>
-        ))}
+        )) : (
+          <div className="text-center py-8 text-muted-foreground">
+            No investors found for this deal
+          </div>
+        )}
       </div>
     </div>
   )
