@@ -1,7 +1,7 @@
 "use client";
 
 import { SidebarProvider, SidebarInset } from "@/components/shadcn/sidebar";
-import { HomeSidebar } from "@/components/dashboard/layout-components/bank/home-sidebar";
+import { BankSidebar } from "@/components/dashboard/layout-components/bank/bank-sidebar";
 import { DashboardHeader } from "@/components/dashboard/layout-components/bank/header";
 
 export default function BankHomeLayout({
@@ -15,7 +15,7 @@ export default function BankHomeLayout({
 
   return (
     <SidebarProvider>
-      <HomeSidebar />
+      <BankSidebar />
       <SidebarInset>
         <DashboardHeader onToggleSidebar={toggleSidebar} />
         <main className="flex-1 overflow-auto p-4">{children}</main>
