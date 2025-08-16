@@ -18,20 +18,18 @@ import {
 import { SidebarTrigger } from "@/components/shadcn/sidebar"
 import { signOut, useSession } from "next-auth/react"
 import { usePathname } from "next/navigation"
-import Link from "next/link"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/shadcn/breadcrumb"
+import { useEffect } from "react"
+import { BreadcrumbNav } from "@/components/shared/breadcrumb-nav"
+import { useBreadcrumbStore } from "@/lib/stores/breadcrumb-store"
 
 export function DashboardHeader() {
   const { data: session } = useSession()
   const pathname = usePathname()
-  const pathSegments = pathname.split("/").filter(Boolean)
+  const { updateBreadcrumbsFromPath } = useBreadcrumbStore()
+
+  useEffect(() => {
+    updateBreadcrumbsFromPath(pathname)
+  }, [pathname, updateBreadcrumbsFromPath])
 
   const getInitials = (name: string) => {
     return (
@@ -62,38 +60,7 @@ export function DashboardHeader() {
       <div className="flex h-16 items-center px-6 w-full">
         <div className="flex items-center space-x-4">
           <SidebarTrigger className="h-8 w-8 text-gray-500 hover:text-gray-700" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              {pathSegments.map((segment, index) => {
-                const href = "/" + pathSegments.slice(0, index + 1).join("/")
-                const isLast = index === pathSegments.length - 1
-                const displaySegment = segment
-                  .replace(/-/g, " ")
-                  .split(" ")
-                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                  .join(" ")
-
-                return (
-                  <div key={href} className="flex items-center">
-                    <BreadcrumbItem>
-                      {isLast ? (
-                        <BreadcrumbPage className="text-gray-900 font-medium">
-                          {displaySegment}
-                        </BreadcrumbPage>
-                      ) : (
-                        <BreadcrumbLink asChild>
-                          <Link href={href} className="text-gray-600 hover:text-gray-900">
-                            {displaySegment}
-                          </Link>
-                        </BreadcrumbLink>
-                      )}
-                    </BreadcrumbItem>
-                    {!isLast && <BreadcrumbSeparator className="text-gray-400" />}
-                  </div>
-                )
-              })}
-            </BreadcrumbList>
-          </Breadcrumb>
+          <BreadcrumbNav />
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-3">

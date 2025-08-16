@@ -14,12 +14,12 @@ import { ChevronDown } from "lucide-react";
 
 export function LogoSidebarHeader() {
   return (
-    <SidebarHeader className="border-b p-4">
+    <SidebarHeader className="group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:py-2">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="w-full justify-start h-auto p-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2"
+            className="w-full justify-start h-auto p-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
           >
             <div className="flex items-center gap-3 w-full group-data-[collapsible=icon]:gap-0">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
@@ -41,7 +41,9 @@ export function LogoSidebarHeader() {
               </div>
               <div>
                 <p className="text-sm font-medium">Finvase</p>
-                <p className="text-xs text-muted-foreground">Team Plan • 40 members</p>
+                <p className="text-xs text-muted-foreground">
+                  Team Plan • 40 members
+                </p>
               </div>
             </div>
           </DropdownMenuLabel>
@@ -53,7 +55,9 @@ export function LogoSidebarHeader() {
               </Avatar>
               <div>
                 <p className="text-sm">Sandra</p>
-                <p className="text-xs text-muted-foreground">Personal Plan • 1 member</p>
+                <p className="text-xs text-muted-foreground">
+                  Personal Plan • 1 member
+                </p>
               </div>
             </div>
           </DropdownMenuItem>

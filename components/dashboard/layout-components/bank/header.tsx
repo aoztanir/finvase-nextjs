@@ -19,15 +19,9 @@ import { ThemeToggle } from "@/components/shadcn/theme-toggle";
 import { SidebarTrigger } from "@/components/shadcn/sidebar";
 import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import Link from "next/link";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/shadcn/breadcrumb";
+import { useEffect } from "react";
+import { BreadcrumbNav } from "@/components/shared/breadcrumb-nav";
+import { useBreadcrumbStore } from "@/lib/stores/breadcrumb-store";
 
 interface DashboardHeaderProps {
   onToggleSidebar: () => void;
@@ -36,7 +30,11 @@ interface DashboardHeaderProps {
 export function DashboardHeader({}: DashboardHeaderProps) {
   const { data: session } = useSession();
   const pathname = usePathname();
-  const pathSegments = pathname.split("/").filter(Boolean);
+  const { updateBreadcrumbsFromPath } = useBreadcrumbStore();
+
+  useEffect(() => {
+    updateBreadcrumbsFromPath(pathname);
+  }, [pathname, updateBreadcrumbsFromPath]);
 
   const getInitials = (name: string) => {
     return (
@@ -67,34 +65,7 @@ export function DashboardHeader({}: DashboardHeaderProps) {
       <div className="flex h-14 items-center px-4 w-full">
         <div className="flex items-center space-x-4">
           <SidebarTrigger className="h-8 w-8" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              {pathSegments.map((segment, index) => {
-                const href = "/" + pathSegments.slice(0, index + 1).join("/");
-                const isLast = index === pathSegments.length - 1;
-                const displaySegment = segment
-                  .replace(/-/g, " ")
-                  .split(" ")
-                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                  .join(" ");
-
-                return (
-                  <div key={href} className="flex items-center">
-                    <BreadcrumbItem>
-                      {isLast ? (
-                        <BreadcrumbPage>{displaySegment}</BreadcrumbPage>
-                      ) : (
-                        <BreadcrumbLink asChild>
-                          <Link href={href}>{displaySegment}</Link>
-                        </BreadcrumbLink>
-                      )}
-                    </BreadcrumbItem>
-                    {!isLast && <BreadcrumbSeparator />}
-                  </div>
-                );
-              })}
-            </BreadcrumbList>
-          </Breadcrumb>
+          <BreadcrumbNav />
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-4">

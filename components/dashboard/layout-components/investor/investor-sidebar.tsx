@@ -1,20 +1,13 @@
 'use client'
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/shadcn/button"
 import { 
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
+  SidebarHeader,
 } from "@/components/shadcn/sidebar"
-import { LogoSidebarHeader } from "@/components/dashboard/layout-components/shared/logo-sidebar-header"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import LogoSidebarHeader from "@/components/dashboard/layout-components/shared/logo-sidebar-header"
+import { SidebarNavGroup } from "@/components/dashboard/layout-components/shared/sidebar-nav-group"
+import { SidebarUserFooter } from "@/components/dashboard/layout-components/shared/sidebar-user-footer"
 import {
   Home,
   Building,
@@ -28,27 +21,27 @@ import {
 const navigationItems = [
   {
     title: "Dashboard",
-    href: "/dashboard/investor",
+    url: "/dashboard/investor",
     icon: Home,
   },
   {
     title: "My Investments",
-    href: "/dashboard/investor/investments",
+    url: "/dashboard/investor/investments",
     icon: Building,
   },
   {
     title: "Opportunities",
-    href: "/dashboard/investor/opportunities",
+    url: "/dashboard/investor/opportunities",
     icon: Search,
   },
   {
     title: "Documents",
-    href: "/dashboard/investor/documents",
+    url: "/dashboard/investor/documents",
     icon: FileText,
   },
   {
     title: "Performance",
-    href: "/dashboard/investor/performance",
+    url: "/dashboard/investor/performance",
     icon: TrendingUp,
   },
 ]
@@ -56,65 +49,36 @@ const navigationItems = [
 const supportItems = [
   {
     title: "Settings",
-    href: "/dashboard/investor/settings",
+    url: "/dashboard/investor/settings",
     icon: Settings,
   },
   {
     title: "Help & Support",
-    href: "/dashboard/investor/help",
+    url: "/dashboard/investor/help",
     icon: HelpCircle,
   },
 ]
 
 export function InvestorSidebar() {
-  const pathname = usePathname()
-
   return (
-    <Sidebar>
-      <LogoSidebarHeader />
+    <Sidebar collapsible="icon">
+      <SidebarHeader>
+        <LogoSidebarHeader />
+      </SidebarHeader>
+      
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === item.href}
-                  >
-                    <Link href={item.href}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Support</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {supportItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === item.href}
-                  >
-                    <Link href={item.href}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <SidebarNavGroup
+          label="Navigation"
+          items={navigationItems}
+        />
+        
+        <SidebarNavGroup
+          label="Support"
+          items={supportItems}
+        />
       </SidebarContent>
+      
+      <SidebarUserFooter />
     </Sidebar>
   )
 }

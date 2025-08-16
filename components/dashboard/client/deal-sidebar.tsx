@@ -1,18 +1,13 @@
 "use client";
 
+import { useParams, useRouter } from "next/navigation";
+import { Home, FileText } from "lucide-react";
 import {
   Sidebar,
   SidebarHeader,
   SidebarContent,
   SidebarFooter,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
 } from "@/components/shadcn/sidebar";
-import LogoSidebarHeader from "@/components/dashboard/layout-components/shared/logo-sidebar-header";
-import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -20,20 +15,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/shadcn/select";
-import { useRouter } from "next/navigation";
+import LogoSidebarHeader from "@/components/dashboard/layout-components/shared/logo-sidebar-header";
+import { SidebarNavGroup } from "@/components/dashboard/layout-components/shared/sidebar-nav-group";
+import { SidebarDealsList } from "@/components/dashboard/layout-components/shared/sidebar-deals-list";
+import { SidebarUserFooter } from "@/components/dashboard/layout-components/shared/sidebar-user-footer";
+import { SidebarDealInfo } from "@/components/dashboard/layout-components/shared/sidebar-deal-info";
+import { useQuery } from "@tanstack/react-query";
 
 interface Deal {
   id: string;
   title: string;
 }
 
+const clientNavItems = [
+  {
+    title: "Home",
+    url: "",
+    icon: Home,
+  },
+  {
+    title: "Data Room",
+    url: "data-room",
+    icon: FileText,
+  },
+];
+
 export function DealSidebar() {
   const params = useParams();
-  const pathname = usePathname();
   const router = useRouter();
   const current_deal_id = params.id as string;
 
-  const { data: deals = [], isLoading } = useQuery<Deal[]>({
+  const { data: deals = [] } = useQuery<Deal[]>({
     queryKey: ["client-deals"],
     queryFn: async () => {
       const response = await fetch("/api/client/deals");
@@ -48,29 +60,30 @@ export function DealSidebar() {
     router.push(`/dashboard/client/deals/${deal_id}`);
   };
 
-  const nav_items = [
-    { href: `/dashboard/client/deals/${current_deal_id}`, label: "Home" },
-    { href: `/dashboard/client/deals/${current_deal_id}/data-room`, label: "Data Room" },
-  ];
-
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
       <SidebarHeader>
         <LogoSidebarHeader />
       </SidebarHeader>
+      
       <SidebarContent>
-        <SidebarMenu>
-          {nav_items.map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <Link href={item.href} className="w-full">
-                <SidebarMenuButton isActive={pathname === item.href}>
-                  {item.label}
-                </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+        <SidebarDealInfo dealId={current_deal_id} label="Current Deal" />
+        
+        <SidebarNavGroup
+          label="Core Business"
+          items={clientNavItems}
+          basePath={`/dashboard/client/deals/${current_deal_id}`}
+        />
+        
+        <SidebarDealsList
+          currentDealId={current_deal_id}
+          apiEndpoint="/api/client/deals"
+          queryKey="client-deals"
+          basePath="/dashboard/client/deals"
+          label="Your Deals"
+        />
       </SidebarContent>
+      
       <SidebarFooter>
         <Select onValueChange={handleDealChange} defaultValue={current_deal_id}>
           <SelectTrigger>
