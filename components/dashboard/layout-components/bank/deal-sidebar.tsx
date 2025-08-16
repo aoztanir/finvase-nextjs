@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, FileText, Users, Clock, Settings } from "lucide-react";
+import { BarChart3, FileText, Users, Clock, Settings, FolderOpen, CheckSquare } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -21,9 +21,19 @@ const dealNavItems = [
     icon: BarChart3,
   },
   {
+    title: "Agent Tasks",
+    url: "agent-tasks",
+    icon: CheckSquare,
+  },
+  {
     title: "CIM",
     url: "cim",
     icon: FileText,
+  },
+  {
+    title: "Data Room",
+    url: "data-room",
+    icon: FolderOpen,
   },
   {
     title: "Investors",

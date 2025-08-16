@@ -3,7 +3,45 @@
 
 @custom-variant dark (&:is(.dark *));
 
+html {
+  scroll-behavior: smooth;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter/InterVariable.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter/InterVariable-Italic.tff") format("truetype");
+  /* font-weight: 100 900; */
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "PP Editorial";
+  src: url("/fonts/pp-editorial-ultralight/pp-editorial-ultralight.otf")
+    format("opentype");
+  font-weight: 400;
+  font-style: normal;
+
+  font-display: swap;
+}
+@font-face {
+  font-family: "PP Editorial";
+  src: url("/fonts/pp-editorial-ultralight/pp-editorial-ultralight-italic.otf")
+    format("opentype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
 :root {
+  --font-sans: "Inter", sans-serif;
+  --font-serif: "PP Editorial", serif;
   --radius: 0.65rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -132,4 +170,15 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply font-serif;
+  letter-spacing: 0.001em;
+  font-weight: 400;
 }
